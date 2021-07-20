@@ -1,6 +1,8 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, redirect
 from flask_pymongo import PyMongo
 import mars
+
+
 
 app = Flask(__name__)
 
@@ -10,16 +12,18 @@ mongo = PyMongo(app)
 
 @app.route("/")
 def index():
-    listings = mongo.df
-    return render_template("index.html", listings=listings)
+   # listings = mongo.df
+
+    single_title = mongo.db.mars_titles.find_one()
+    
+    return render_template("index.html", dbperson=single_title)
 
 
 @app.route("/scrape")
 def scraper():
-    listings = mongo.db.listings
-    listings.delete_many({})
-    listings_data = mars.table()
-    listings.insert_many(listings_data)
+    db = mongo.db.mars_titles
+    all_titles = mars.scrapeNew()
+    db.update({}, all_titles[0], upsert=True)
     return redirect("/", code=302)
 
 
